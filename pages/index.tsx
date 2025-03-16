@@ -1,39 +1,29 @@
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
 
 export default function Index() {
   const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-  useEffect(() => {
-    // Cek apakah user sudah login dengan melihat Authorization di cookie
-    const authCookie = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('Authorization='))
-
-    if (authCookie) {
-      setIsLoggedIn(true)
-    } else {
-      router.replace('/api/auth') // Redirect ke halaman login jika tidak ada auth
-    }
-  }, [router])
+  // Cek apakah pengguna sudah login dengan membaca cookie Authorization
+  const isLoggedIn = typeof window !== 'undefined' && document.cookie.includes('Authorization=')
 
   const handleLogout = () => {
     document.cookie = 'Authorization=; Max-Age=0; path=/;' // Hapus cookie auth
     router.replace('/api/auth') // Redirect ke halaman login
   }
 
+  // Jika belum login, langsung redirect ke halaman login
+  if (!isLoggedIn) {
+    if (typeof window !== 'undefined') {
+      router.replace('/api/auth')
+    }
+    return null // Jangan tampilkan apapun sebelum redirect
+  }
+
   return (
     <div style={styles.container}>
-      {isLoggedIn ? (
-        <>
-          <h1 style={styles.heading}>Login Berhasil</h1>
-          <p style={styles.text}>Selamat datang! Anda telah berhasil login.</p>
-          <button style={styles.button} onClick={handleLogout}>Logout</button>
-        </>
-      ) : (
-        <p style={styles.text}>Memeriksa sesi login...</p>
-      )}
+      <h1 style={styles.heading}>Login Berhasil</h1>
+      <p style={styles.text}>Selamat datang! Anda telah berhasil login.</p>
+      <button style={styles.button} onClick={handleLogout}>Logout</button>
     </div>
   )
 }
