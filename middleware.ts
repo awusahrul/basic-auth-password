@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const config = {
-  matcher: ['/'], // Semua halaman harus login
+  matcher: '/:path*', // Semua halaman harus login
 }
 
 export default function middleware(req: NextRequest) {
