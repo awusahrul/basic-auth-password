@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/node": "^17.0.45",
     "@types/react": "latest",
-    "autoprefixer": "^10.4.14",
+    "autoprefixer": "^10.4.21",
     "eslint": "^8.36.0",
     "eslint-config-next": "canary",
     "postcss": "^8.4.21",
