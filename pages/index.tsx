@@ -1,15 +1,20 @@
+import { useRouter } from 'next/router'
+
 export default function Index() {
+  const router = useRouter()
+
+  const handleLogout = () => {
+    document.cookie = 'Authorization=; Max-Age=0; path=/;' // Hapus cookie auth
+    router.replace('/api/auth') // Redirect ke halaman login
+  }
+
   return (
-    <Page>
-      <Text variant="h2" className="mb-6">
-        Password-protected page demo
-      </Text>
-      <List>
-        <li>Username: 4dmin</li>
-        <li>Password: testpwd123</li>
-      </List>
-    </Page>
+    <div style={{ textAlign: 'center', marginTop: '20%' }}>
+      <h2>Login Berhasil</h2>
+      <p>Selamat datang! Anda telah berhasil login.</p>
+      <button onClick={handleLogout} style={{ marginTop: '10px', padding: '10px 20px' }}>
+        Logout
+      </button>
+    </div>
   )
 }
-
-Index.Layout = Layout
