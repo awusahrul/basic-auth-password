@@ -20,42 +20,10 @@ export default function Index() {
   }
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.heading}>Login Berhasil</h1>
-      <p style={styles.text}>Selamat datang! Anda telah berhasil login.</p>
-      <button style={styles.button} onClick={handleLogout}>Logout</button>
-    </div>
+    <>
+      <h1>Login Berhasil</h1>
+      <p>Selamat datang! Anda telah berhasil login.</p>
+      <button onClick={handleLogout}>Logout</button>
+    </>
   )
-}
-
-// CSS inline agar lebih simpel
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column' as const, // Fix TypeScript error
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100vh',
-    textAlign: 'center',
-    backgroundColor: '#f4f4f4',
-  },
-  heading: {
-    fontSize: '2rem',
-    color: '#333',
-    marginBottom: '10px',
-  },
-  text: {
-    fontSize: '1.2rem',
-    color: '#666',
-    marginBottom: '20px',
-  },
-  button: {
-    padding: '10px 20px',
-    fontSize: '1rem',
-    backgroundColor: '#0070f3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
 }
