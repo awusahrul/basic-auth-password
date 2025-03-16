@@ -5,7 +5,7 @@ export default function Index() {
 
   const handleLogout = () => {
     document.cookie = 'Authorization=; Max-Age=0; path=/;' // Hapus cookie auth
-    router.replace('/api/auth') // Redirect ke halaman login
+    router.replace('/') // Redirect ke halaman login
   }
 
   return (
