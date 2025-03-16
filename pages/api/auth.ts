@@ -3,5 +3,5 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 export default function handler(_: NextApiRequest, res: NextApiResponse) {
   res.setHeader('WWW-authenticate', 'Basic realm="Secure Area"')
   res.statusCode = 401
-  res.end(`(Bahasa Indonesia) Kesalahan 401: Diperlukan autentikasi untuk masuk!`)
+  res.end(`401: Authentication is required to log in!`)
 }
