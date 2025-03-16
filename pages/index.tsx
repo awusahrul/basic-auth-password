@@ -1,4 +1,3 @@
-import { Layout, Page, Text, Button } from '@vercel/examples-ui'
 import { useRouter } from 'next/router'
 
 export default function Index() {
