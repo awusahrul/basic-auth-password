@@ -1,6 +1,6 @@
 {
   "name": "basic-auth-password",
-  "repository": "https://github.com/vercel/examples.git",
+  "repository": "https://github.com/awusahrul/basic-auth-password.git",
   "license": "MIT",
   "private": true,
   "scripts": {
