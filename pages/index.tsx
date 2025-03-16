@@ -32,7 +32,7 @@ export default function Index() {
 const styles = {
   container: {
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column' as const, // Fix TypeScript error
     alignItems: 'center',
     justifyContent: 'center',
     height: '100vh',
