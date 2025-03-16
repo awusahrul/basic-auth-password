@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dukung Creator - Pembayaran QRIS</title>
+    <style>
+        :root {
+            --bg-main: #ffffff;
+            --border-color: #eeeeee;
+            --text-primary: #000000;
+            --button-bg: #eeeeee;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+
+        body {
+            background: var(--bg-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-main);
+            border-radius: 16px;
+            border: 2px solid var(--border-color);
+            padding: 24px;
+            text-align: center;
+        }
+
+        .container h1 {
+            margin-bottom: 16px;
+        }
+
+        .container p {
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            font-size: 14px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            background: var(--bg-main);
+        }
+
+        .amount-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .amount-button {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            border-radius: 8px;
+            color: var(--text-primary);
+            background: var(--bg-main);
+        }
+
+        .amount-button.active {
+            background: var(--button-bg);
+            color: var(--text-primary);
+        }
+
+        .generate-button {
+            width: 100%;
+            padding: 16px;
+            background: var(--button-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--bg-main);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 480px;
+            overflow-y: auto;
+        }
+
+        /* Mobile: Modal from bottom */
+        @media (max-width: 767px) {
+            .modal-overlay {
+                justify-content: center;
+                align-items: flex-end;
+            }
+            .modal-content {
+                border-radius: 16px 16px 0 0;
+                transform: translateY(100%);
+                transition: transform 0.3s ease;
+                max-height: 90vh;
+            }
+            .modal-overlay.active .modal-content {
+                transform: translateY(0);
+            }
+        }
+
+        /* Desktop: Modal centered */
+        @media (min-width: 768px) {
+            .modal-overlay {
+                justify-content: center;
+                align-items: center;
+            }
+            .modal-content {
+                transform: scale(0.7);
+                transition: transform 0.3s ease;
+                max-height: 80vh;
+            }
+            .modal-overlay.active .modal-content {
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .modal-qrcode {
+            padding: 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-info {
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .modal-info h3 {
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .modal-info p {
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .payment-guide {
+            text-align: left;
+            border-top: 2px solid var(--border-color);
+            padding-top: 16px;
+        }
+
+        .payment-guide h3 {
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .payment-guide ol {
+            padding-left: 20px;
+        }
+
+        .payment-guide li {
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .modal-footer {
+            border-top: 2px solid var(--border-color);
+            padding-top: 16px;
+            text-align: center;
+        }
+
+        .download-button {
+            width: 100%;
+            padding: 16px;
+            background: var(--button-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-top: 24px;
+        }
+
+        /* Custom Alert Styles */
+        .alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .alert-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .alert-content {
+            background: var(--bg-main);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            text-align: center;
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+
+        .alert-overlay.active .alert-content {
+            transform: scale(1);
+        }
+
+        .alert-content p {
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .alert-content button {
+            padding: 12px 24px;
+            background: var(--button-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Styles for Payment Sheet (Temporary DOM) */
+        .payment-sheet {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            width: 600px;
+            height: 600px; /* Kotak 1:1 */
+            border: 1px solid #000000;
+            padding: 40px; /* Jarak dari pinggiran */
+            font-family: Arial, sans-serif;
+            color: #000000;
+        }
+
+        .payment-sheet .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+            border-bottom: 2px solid #000000;
+            padding: 15px;
+            margin: 0 20px 20px 20px; /* Jarak dari pinggiran */
+        }
+
+        .payment-sheet .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .payment-sheet .header p {
+            font-size: 14px;
+            color: #333333;
+        }
+
+        .payment-sheet .content {
+            display: flex;
+            flex-direction: row; /* Tata letak horizontal */
+            justify-content: space-between;
+            align-items: center;
+         /*   background: rgba(255, 255, 255, 0.8); */
+            padding: 15px;
+            border-radius: 8px;
+            margin: 0 20px; /* Jarak dari pinggiran */
+        }
+
+        .payment-sheet .details {
+            width: 50%; /* Setengah lebar untuk detail */
+            text-align: left;
+        }
+
+        .payment-sheet .details p {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .payment-sheet .details p strong {
+            display: inline-block;
+            width: 120px; /* Lebar label sedikit diperkecil */
+        }
+
+        .payment-sheet .qrcode {
+            width: 40%; /* Lebar untuk QR Code */
+            text-align: center;
+        }
+
+        .payment-sheet .qrcode img {
+            width: 180px;
+            height: 180px;
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .payment-sheet .footer {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+            border-top: 2px solid #000000;
+            padding: 15px;
+            margin: 20px 20px 0 20px; /* Jarak dari pinggiran */
+            font-size: 12px;
+            color: #333333;
+        }
+
+        /* Styles for Preview (Optional) */
+        .preview-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .preview-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .preview-content {
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .preview-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dukung Creator</h1>
+        <p>Terimakasih yang sudah ikut berdonasi!</p>
+
+        <div class="form-group">
+            <label>Nama Pelanggan<span style="color:red;">*</span></label>
+            <input type="text" id="customerNameInput" placeholder="Masukkan nama Anda">
+        </div>
+
+        <div class="form-group">
+            <label>Pilih Merchant<span style="color:red;">*</span></label>
+            <select id="merchantSelect">
+                <option value="QRIS-MBL">Qris Mitra Bukalapak</option>
+                <option value="QRIS-DANA">Qris DANA</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Nominal<span style="color:red;">*</span></label>
+            <input type="number" id="nominalInput" placeholder="Ketik jumlah dukungan" min="1000" step="1000">
+        </div>
+
+        <div class="amount-grid">
+            <button class="amount-button" data-amount="10000">10k</button>
+            <button class="amount-button" data-amount="15000">15k</button>
+            <button class="amount-button" data-amount="25000">25k</button>
+            <button class="amount-button" data-amount="100000">100k</button>
+        </div>
+
+        <button class="generate-button" onclick="generateQRIS()">Buat QRIS</button>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Pembayaran QRIS - AwuPay</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-qrcode" id="modalQrcode"></div>
+            <div class="modal-info">
+                <h3>Detail Pembayaran</h3>
+                <p><strong>Nama Pelanggan:</strong> <span id="modalCustomerName"></span></p>
+                <p><strong>Merchant:</strong> <span id="modalMerchant"></span></p>
+                <p><strong>Nominal Pembayaran:</strong> <span id="modalNominal">Rp 0</span></p>
+                <p><strong>Waktu Diterbitkan:</strong> <span id="modalIssueTime"></span></p>
+            </div>
+            <div class="payment-guide">
+                <h3>Panduan Cara Bayar</h3>
+                <ol>
+                    <li>Buka aplikasi pembayaran digital yang mendukung QRIS (seperti GoPay, OVO, DANA, LinkAja, atau mobile banking).</li>
+                    <li>Pilih opsi "Scan QR" atau "Bayar via QR".</li>
+                    <li>Scan kode QR yang ditampilkan di atas.</li>
+                    <li>Periksa nominal pembayaran dan pastikan sesuai.</li>
+                    <li>Konfirmasi pembayaran dan masukkan PIN Anda jika diperlukan.</li>
+                    <li>Simpan bukti transaksi setelah pembayaran berhasil.</li>
+                </ol>
+            </div>
+            <div class="modal-footer">
+                <button class="download-button" onclick="downloadPaymentSheet()">Download Lembar Pembayaran</button>
+                <button class="download-button" onclick="previewPaymentSheet()">Pratinjau Lembar Pembayaran</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert-overlay" id="alertOverlay">
+        <div class="alert-content">
+            <p id="alertMessage"></p>
+            <button onclick="closeAlert()">OK</button>
+        </div>
+    </div>
+
+    <div class="preview-overlay" id="previewOverlay">
+        <div class="preview-content" id="previewContent">
+            <button class="preview-close" onclick="closePreview()">×</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        // Data QRIS dalam JSON
+        const qrisData = {
+            "QRIS-MBL": "00020101021126710019ID.CO.CIMBNIAGA.WWW011893600022000068197502150000088009030530303UMI51450015ID.OR.QRNPG.WWW0215ID10243215839070303UMI5204549953033605802ID5913MBL759064*AWU6007BANGGAI61059475262120708M47422016304DEE2",
+            "QRIS-DANA": "00020101021126570011ID.DANA.WWW011893600915362525155602096252515560303UMI51440014ID.CO.QRIS.WWW0215ID10243185907170303UMI5204561153033605802ID5904Awu 6012Kab. Banggai610594752630468E7"
+        };
+
+        // URL gambar latar belakang (ganti dengan URL gambar Anda)
+        const backgroundImageUrl = 'bg_20250316_072954_0000.svg';
+
+        function toCRC16(input) {
+            let crc = 0xFFFF;
+            for (let i = 0; i < input.length; i++) {
+                crc ^= input.charCodeAt(i) << 8;
+                for (let j = 0; j < 8; j++) {
+                    crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+                }
+            }
+            let hex = (crc & 0xFFFF).toString(16).toUpperCase();
+            return hex.length === 3 ? "0" + hex : hex;
+        }
+
+        function makeString(qris, { nominal }) {
+            let qrisModified = qris.slice(0, -4).replace("010211", "010212");
+            let qrisParts = qrisModified.split("5802ID");
+
+            let amount = "54" + nominal.toString().length.toString().padStart(2, '0') + nominal;
+            amount += "5802ID";
+
+            let output = qrisParts[0].trim() + amount + qrisParts[1].trim();
+            output += toCRC16(output);
+
+            return output;
+        }
+
+        const customerNameInput = document.getElementById('customerNameInput');
+        const merchantSelect = document.getElementById('merchantSelect');
+        const nominalInput = document.getElementById('nominalInput');
+        const amountButtons = document.querySelectorAll('.amount-button');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalCustomerName = document.getElementById('modalCustomerName');
+        const modalMerchant = document.getElementById('modalMerchant');
+        const modalNominal = document.getElementById('modalNominal');
+        const modalIssueTime = document.getElementById('modalIssueTime');
+        const alertOverlay = document.getElementById('alertOverlay');
+        const alertMessage = document.getElementById('alertMessage');
+        const previewOverlay = document.getElementById('previewOverlay');
+        const previewContent = document.getElementById('previewContent');
+
+        amountButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                nominalInput.value = button.dataset.amount;
+            });
+        });
+
+        function showAlert(message) {
+            alertMessage.textContent = message;
+            alertOverlay.classList.add('active');
+        }
+
+        function closeAlert() {
+            alertOverlay.classList.remove('active');
+        }
+
+        function generateQRIS() {
+            const customerName = customerNameInput.value.trim();
+            const merchant = merchantSelect.value;
+            const nominal = parseInt(nominalInput.value.trim());
+
+            if (!customerName) {
+                showAlert('Nama Pelanggan wajib diisi');
+                return;
+            }
+
+            if (!nominal || nominal < 100) {
+                showAlert('Minimal nominal adalah Rp100');
+                return;
+            }
+
+            const qrisInput = qrisData[merchant];
+            const qrisDinamis = makeString(qrisInput, { nominal: nominal });
+            const qrcodeElement = document.getElementById('modalQrcode');
+            qrcodeElement.innerHTML = '';
+
+            QRCode.toCanvas(qrisDinamis, { width: 200 }, function (err, canvas) {
+                if (err) {
+                    console.error(err);
+                    showAlert('Gagal membuat QR Code');
+                } else {
+                    qrcodeElement.appendChild(canvas);
+                    modalCustomerName.textContent = customerName;
+                    modalMerchant.textContent = merchant;
+                    modalNominal.textContent = `Rp ${nominal.toLocaleString('id-ID')}`;
+                    const issueTime = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' });
+                    modalIssueTime.textContent = issueTime;
+                    modalOverlay.classList.add('active');
+                }
+            });
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+        // Close alert with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && alertOverlay.classList.contains('active')) {
+                closeAlert();
+            }
+        });
+
+        function createPaymentSheet() {
+            const customerName = modalCustomerName.textContent;
+            const merchant = modalMerchant.textContent;
+            const nominal = modalNominal.textContent;
+            const issueTime = modalIssueTime.textContent;
+            const qrcodeCanvas = document.querySelector('#modalQrcode canvas');
+
+            // Konversi QR Code dari canvas ke gambar
+            const qrcodeImageSrc = qrcodeCanvas.toDataURL('image/png');
+
+            // Buat elemen sementara untuk lembar pembayaran
+            const paymentSheet = document.createElement('div');
+            paymentSheet.className = 'payment-sheet';
+            paymentSheet.style.background = `url('${backgroundImageUrl}') no-repeat center center`;
+            paymentSheet.style.backgroundSize = 'cover';
+            paymentSheet.innerHTML = `
+              <!--  <div class="header">
+                    <h1>AwuPay - Lembar Pembayaran</h1>
+                    <p>Pembayaran QRIS untuk Donasi</p>
+                </div>--><br></br><br></br><br></br><br></br>
+                <div class="content">
+                    <div class="details">
+                        <p><strong>Nama Pelanggan</strong>:  ${customerName}</p>
+                        <p><strong>Metode Pembayaran</strong>:  ${merchant}</p>
+                        <p><strong>Jumlah Transaksi</strong>:  ${nominal}</p><br/>
+                        <p> ${issueTime} WITA</p>
+                    </div>
+                    <div class="qrcode">
+                        <img src="${qrcodeImageSrc}" alt="QR Code">
+                    </div>
+                </div><!--
+                <div class="footer">
+                    <p>Powered by AwuPay - Terima kasih atas donasi Anda!</p>
+                </div>-->
+            `;
+
+            return paymentSheet;
+        }
+
+        function downloadPaymentSheet() {
+            const paymentSheet = createPaymentSheet();
+
+            // Tambahkan elemen sementara ke body
+            document.body.appendChild(paymentSheet);
+
+            // Tunggu sebentar untuk memastikan gambar dirender
+            setTimeout(() => {
+                html2canvas(paymentSheet, { scale: 2 }).then(canvas => {
+                    const randomNum = Math.floor(Math.random() * 1000000);
+                    const fileName = `AwuPay-${randomNum}.jpg`;
+                    const link = document.createElement('a');
+                    link.download = fileName;
+                    link.href = canvas.toDataURL('image/jpeg', 1.0);
+                    link.click();
+
+                    // Hapus elemen sementara
+                    document.body.removeChild(paymentSheet);
+                }).catch(err => {
+                    console.error(err);
+                    showAlert('Gagal mengunduh lembar pembayaran');
+                    document.body.removeChild(paymentSheet);
+                });
+            }, 100); // Penundaan 100ms untuk memastikan rendering selesai
+        }
+
+        function previewPaymentSheet() {
+            const paymentSheet = createPaymentSheet();
+
+            // Kosongkan konten pratinjau sebelumnya
+            previewContent.innerHTML = '<button class="preview-close" onclick="closePreview()">×</button>';
+            previewContent.appendChild(paymentSheet);
+
+            // Tampilkan overlay pratinjau
+            paymentSheet.style.position = 'static'; // Pastikan payment-sheet terlihat di pratinjau
+            previewOverlay.classList.add('active');
+        }
+
+        function closePreview() {
+            previewOverlay.classList.remove('active');
+        }
+
+        // Close preview when clicking outside
+        previewOverlay.addEventListener('click', (e) => {
+            if (e.target === previewOverlay) {
+                closePreview();
+            }
+        });
+
+        // Close preview with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && previewOverlay.classList.contains('active')) {
+                closePreview();
+            }
+        });
+    </script>
+</body>
+</html>
