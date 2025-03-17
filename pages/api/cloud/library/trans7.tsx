@@ -6,19 +6,25 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
+    // Ambil file .m3u8 dari sumber asli
     const response = await axios.get(
       "https://video.detik.com/trans7/smil:trans7.smil/index.m3u8",
-      {
-        headers: {
-          "Content-Type": "application/vnd.apple.mpegurl",
-        },
-        responseType: "text", // Pastikan respons dikembalikan dalam bentuk teks
-      }
+      { responseType: "text" }
     );
 
+    let playlist = response.data;
+
+    // Ganti semua path relatif dengan path absolut
+    playlist = playlist.replace(
+      /^(?!https?:\/\/)(.*\.m3u8)$/gm, // Cari path relatif (file .ts)
+      "https://video.detik.com/trans7/$1" // Tambahkan host utama
+    );
+
+    // Set header agar tetap dalam format .m3u8
     res.setHeader("Content-Type", "application/vnd.apple.mpegurl");
-    res.status(200).send(response.data);
+    res.status(200).send(playlist);
   } catch (error) {
+    console.error("Error fetching Trans7 stream:", error);
     res.status(500).send("Gagal mengambil data dari Trans7");
   }
 }
