@@ -64,36 +64,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const response = await axios.get<IpApiResponse>(`https://ipapi.co/${userIp}/json/`);
     const ipData = response.data;
 
-    // Jika ipapi.co mengembalikan error atau organisasi masih CLOUDFLARENET
-    if (ipData.error || ipData.org === 'awucloud') {
-      throw new Error('Detected Cloudflare IP instead of user IP');
-    }
-
-    res.status(200).json(ipData);
-  } catch (error) {
-    res.status(500).json({
-      ip: null,
-      version: 'Unknown',
-      city: 'Unknown',
-      region: 'Unknown',
-      region_code: 'Unknown',
-      country: 'Unknown',
-      country_name: 'Unknown',
-      country_code: 'Unknown',
-      continent_code: 'Unknown',
-      in_eu: false,
-      postal: null,
-      latitude: 0,
-      longitude: 0,
-      timezone: 'Unknown',
-      utc_offset: 'Unknown',
-      country_calling_code: 'Unknown',
-      currency: 'Unknown',
-      currency_name: 'Unknown',
-      languages: 'Unknown',
-      asn: 'Unknown',
-      org: 'Unknown',
-      error: error.message || 'Failed to fetch IP information'
-    });
-  }
+    
 }
