@@ -1,6 +1,6 @@
 import axios from 'axios';
+import { useEffect, useState } from 'react';
 
-// Interface untuk menentukan tipe data response dari API
 interface IpApiResponse {
   ip: string;
   version: string;
@@ -25,8 +25,7 @@ interface IpApiResponse {
   org: string;
 }
 
-// Fungsi untuk mengambil data IP
-export const getIpInfo = async (): Promise<IpApiResponse> => {
+const getIpInfo = async (): Promise<IpApiResponse> => {
   try {
     const response = await axios.get<IpApiResponse>('https://ipapi.co/json');
     return response.data;
@@ -36,14 +35,39 @@ export const getIpInfo = async (): Promise<IpApiResponse> => {
   }
 };
 
-// Contoh penggunaan (opsional)
-export const printIpInfo = async () => {
-  try {
-    const ipData = await getIpInfo();
-    console.log('IP Information:', JSON.stringify(ipData, null, 2));
-    return ipData;
-  } catch (error) {
-    console.error('Error in printIpInfo:', error);
-    throw error;
+export default function IpPage() {
+  const [ipData, setIpData] = useState<IpApiResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchIpData = async () => {
+      try {
+        const data = await getIpInfo();
+        setIpData(data);
+      } catch (err) {
+        setError('Failed to fetch IP information');
+      }
+    };
+    fetchIpData();
+  }, []);
+
+  if (error) {
+    return <div>Error: {error}</div>;
   }
-};
+
+  if (!ipData) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h1>IP Information</h1>
+      <p><strong>IP:</strong> {ipData.ip}</p>
+      <p><strong>City:</strong> {ipData.city}</p>
+      <p><strong>Region:</strong> {ipData.region}</p>
+      <p><strong>Country:</strong> {ipData.country_name}</p>
+      <p><strong>Timezone:</strong> {ipData.timezone}</p>
+      <p><strong>Currency:</strong> {ipData.currency_name}</p>
+    </div>
+  );
+}
