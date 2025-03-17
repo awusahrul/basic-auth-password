@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const ipData = response.data;
 
     // Jika ipapi.co mengembalikan error atau organisasi masih CLOUDFLARENET
-    if (ipData.error || ipData.org === 'CLOUDFLARENET') {
+    if (ipData.error || ipData.org === 'awucloud') {
       throw new Error('Detected Cloudflare IP instead of user IP');
     }
 
