@@ -64,10 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const response = await axios.get<IpApiResponse>(`https://ipapi.co/${userIp}/json/`);
     const ipData = response.data;
 
-    // Jika ipapi.co mengembalikan error atau organisasi masih CLOUDFLARENET
-    if (ipData.error || ipData.org === 'CLOUDFLARENET') {
-      throw new Error('VPN Detected, Redirected to Awu.my.id connection');
-    }
+    
 
     res.status(200).json(ipData);
   } catch (error) {
