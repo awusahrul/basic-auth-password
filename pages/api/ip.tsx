@@ -3,6 +3,7 @@ import axios from 'axios';
 
 interface IpApiResponse {
   ip: string;
+  network?: string;
   version: string;
   city: string;
   region: string;
@@ -10,9 +11,12 @@ interface IpApiResponse {
   country: string;
   country_name: string;
   country_code: string;
+  country_code_iso3?: string;
+  country_capital?: string;
+  country_tld?: string;
   continent_code: string;
   in_eu: boolean;
-  postal: string;
+  postal: string | null;
   latitude: number;
   longitude: number;
   timezone: string;
@@ -21,25 +25,70 @@ interface IpApiResponse {
   currency: string;
   currency_name: string;
   languages: string;
+  country_area?: number;
+  country_population?: number;
   asn: string;
   org: string;
+  error?: string;
 }
 
-const getIpInfo = async (): Promise<IpApiResponse> => {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<IpApiResponse>) {
   try {
-    const response = await axios.get<IpApiResponse>('https://ipapi.co/json');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching IP data:', error);
-    throw new Error('Failed to fetch IP information');
-  }
-};
+    // Ambil IP dari header x-forwarded-for
+    const forwarded = req.headers['x-forwarded-for'] as string | string[] | undefined;
+    let userIp: string | null = null;
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    const ipData = await getIpInfo();
+    if (forwarded) {
+      if (Array.isArray(forwarded)) {
+        userIp = forwarded[0]; // Ambil IP pertama (IP asli pengguna)
+      } else {
+        const ipList = forwarded.split(',').map(ip => ip.trim());
+        userIp = ipList[0]; // Ambil IP pertama
+      }
+    }
+
+    if (!userIp) {
+      userIp = req.socket.remoteAddress || null;
+    }
+
+    if (!userIp) {
+      throw new Error('Unable to determine user IP');
+    }
+
+    // Gunakan IP pengguna untuk mengambil data dari ipapi.co
+    const response = await axios.get<IpApiResponse>(`https://ipapi.co/${userIp}/json/`);
+    const ipData = response.data;
+
+    // Jika ipapi.co mengembalikan error
+    if (ipData.error) {
+      throw new Error('Failed to fetch IP information');
+    }
+
     res.status(200).json(ipData);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch IP information' });
+    res.status(500).json({
+      ip: null,
+      version: 'Unknown',
+      city: 'Unknown',
+      region: 'Unknown',
+      region_code: 'Unknown',
+      country: 'Unknown',
+      country_name: 'Unknown',
+      country_code: 'Unknown',
+      continent_code: 'Unknown',
+      in_eu: false,
+      postal: null,
+      latitude: 0,
+      longitude: 0,
+      timezone: 'Unknown',
+      utc_offset: 'Unknown',
+      country_calling_code: 'Unknown',
+      currency: 'Unknown',
+      currency_name: 'Unknown',
+      languages: 'Unknown',
+      asn: 'Unknown',
+      org: 'Unknown',
+      error: error.message || 'Failed to fetch IP information'
+    });
   }
 }
