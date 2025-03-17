@@ -1,8 +1,8 @@
 {
   "name": "basic-auth-password",
-  "repository": "https://github.com/awusahrul/basic-auth-password.git",
-  "license": "MIT",
+  "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@8.15.4",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,20 +11,20 @@
   },
   "dependencies": {
     "@vercel/examples-ui": "^1.0.5",
-    "axios": "^1.8.3",
-    "next": "canary",
-    "react": "latest",
-    "react-dom": "latest"
+    "axios": "^1.6.8",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/node": "^17.0.45",
-    "@types/react": "latest",
+    "@types/react": "^18.3.11",
     "autoprefixer": "^10.4.21",
     "eslint": "^8.36.0",
-    "eslint-config-next": "canary",
+    "eslint-config-next": "^14.2.15",
     "postcss": "^8.4.21",
     "tailwindcss": "^3.2.7",
     "turbo": "^1.8.5",
-    "typescript": "4.5.5"
+    "typescript": "^5.4.5"
   }
 }
