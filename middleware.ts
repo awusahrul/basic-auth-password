@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const config = {
-  matcher: '/:path*', // Mengunci semua halaman
-}
+  matcher: [
+    '/:path*', // Mengunci semua halaman
+    // Kecualikan path yang dimulai dengan /page/api/cloud/
+    '!/page/api/cloud/:path*',
+  ],
+};
 
 export default function middleware(req: NextRequest) {
   const basicAuth = req.headers.get('authorization')
